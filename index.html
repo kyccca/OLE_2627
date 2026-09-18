@@ -154,26 +154,26 @@
             submitBtn.innerText = '提交中...';
             submitBtn.disabled = true;
 
-            // 傳送資料到 Google Sheets
-            fetch(GOOGLE_SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // 避免 CORS 問題
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(submitData)
-            }).then(() => {
-                activityForm.reset();
-                activityForm.classList.add('hidden');
-                groupSelect.value = '';
-                successMessage.classList.remove('hidden');
-            }).catch(error => {
-                alert('提交失敗，請稍後再試。');
-                console.error('Error!', error.message);
-            }).finally(() => {
-                submitBtn.innerText = originalBtnText;
-                submitBtn.disabled = false;
-            });
+       // 假設你已經把表單資料整理成一個物件 data
+fetch(GOOGLE_SCRIPT_URL, {
+  method: 'POST',
+  // 使用 text/plain 可以避免觸發複雜的 CORS 預檢請求 (Preflight)
+  headers: {
+    'Content-Type': 'text/plain;charset=utf-8', 
+  },
+  body: JSON.stringify(data) // 將資料轉成字串送出
+})
+.then(response => {
+  if (response.ok) {
+    alert('提交成功！');
+  } else {
+    alert('提交失敗，請稍後再試。');
+  }
+})
+.catch(error => {
+  console.error('Error:', error);
+  alert('發生錯誤，請檢查網路連線或稍後再試。');
+});
         });
     </script>
 
