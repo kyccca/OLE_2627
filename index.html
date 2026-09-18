@@ -1,0 +1,181 @@
+<!DOCTYPE html><html lang="zh-HK"><head><meta name="x-poe-datastore-behavior" content="local_only"><meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://code.jquery.com https://unpkg.com https://d3js.org https://threejs.org https://cdn.plot.ly https://stackpath.bootstrapcdn.com https://maps.googleapis.com https://cdn.tailwindcss.com https://ajax.googleapis.com https://kit.fontawesome.com https://cdn.datatables.net https://maxcdn.bootstrapcdn.com https://code.highcharts.com https://tako-static-assets-production.s3.amazonaws.com https://www.youtube.com https://fonts.googleapis.com https://fonts.gstatic.com https://pfst.cf2.poecdn.net https://puc.poecdn.net https://i.imgur.com https://wikimedia.org https://*.icons8.com https://*.giphy.com https://picsum.photos https://images.unsplash.com; frame-src 'self' https://www.youtube.com https://trytako.com; child-src 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests; block-all-mixed-content;">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>各組別活動負責人填報表</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'PingFang HK', 'Microsoft JhengHei', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 md:p-8">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
+        <h1 class="text-2xl font-bold text-center text-blue-700 mb-6">各組別活動負責人填報表</h1>
+        
+        <div class="mb-6">
+            <label for="groupSelect" class="block text-sm font-medium text-gray-700 mb-2">請選擇你的協作組別：</label>
+            <select id="groupSelect" class="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">-- 請選擇組別 --</option>
+                <option value="生涯規劃組">生涯規劃組</option>
+                <option value="聯課活動組">聯課活動組</option>
+                <option value="德育、公民及國民教育組">德育、公民及國民教育組</option>
+                <option value="服務學習組">服務學習組</option>
+                <option value="訓育組">訓育組</option>
+                <option value="輔導組">輔導組</option>
+                <option value="體育科">體育科</option>
+                <option value="視藝科">視藝科</option>
+            </select>
+        </div>
+
+        <form id="activityForm" class="hidden">
+            <div id="activitiesContainer" class="space-y-4 mb-6">
+                <!-- 活動列表將透過 JavaScript 動態生成在這裡 -->
+            </div>
+            
+            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 transition duration-200">
+                提交負責人名單
+            </button>
+        </form>
+
+        <div id="successMessage" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-md text-center">
+            提交成功！資料已同步至 Google Sheets。
+        </div>
+    </div>
+
+    <script>
+        // 更新後的活動數據
+        const activitiesData = {
+            "生涯規劃組": [
+                { grade: "中一", date: "30/10(五)", name: "地點:突破營地 (上午)" },
+                { grade: "中二", date: "22/1(五)", name: "自我管理工作坊 (時間管理/生活優次篇) 13:30-15:00" },
+                { grade: "中三", date: "30/10(五)", name: "生涯規劃活動 13:00-13:40" },
+                { grade: "中三", date: "30/10(五)", name: "職場面面觀 13:45-15:15" },
+                { grade: "中三", date: "19/3(五)", name: "生涯規劃選科講座 10:45-11:45" },
+                { grade: "中五", date: "19/3(五)", name: "生涯規劃工作坊 10:15-11:15" },
+                { grade: "中五", date: "19/3(五)", name: "網上性向測試 CII問卷 11:30-12:15" },
+                { grade: "中五", date: "19/3(五)", name: "職場參觀 13:30-16:30" }
+            ],
+            "聯課活動組": [
+                { grade: "中一", date: "30/10(五)", name: "戶外學習日 赤柱 (下午)" },
+                { grade: "中二", date: "19/3(五)", name: "戶外學習日 (海洋公園)" }
+            ],
+            "德育、公民及國民教育組": [
+                { grade: "中一", date: "22/1(五)", name: "內地考察 (全日) [待定]" },
+                { grade: "中三", date: "19/3(五)", name: "惜食堂講座 - 吃力救地球 09:30-10:30" },
+                { grade: "中三", date: "19/3(五)", name: "參觀中上環文物史蹟徑 13:00-16:30" },
+                { grade: "中四", date: "19/3(五)", name: "VR 同理心體驗 創科思維工作坊 (上午)" },
+                { grade: "中五", date: "22/1(五)", name: "其他提高環保意識活動 [待定]" }
+            ],
+            "服務學習組": [
+                { grade: "中一", date: "19/3(五)", name: "愛心送暖行動 [待定]" },
+                { grade: "中四", date: "19/3(五)", name: "老人服務 (1樓課室)+老人護理院 13:15-16:30" }
+            ],
+            "訓育組": [
+                { grade: "中二", date: "30/10(五)", name: "分班工作坊 (主題:禁煙/禁藥) 10:30-12:00" },
+                { grade: "中三", date: "30/10(五)", name: "分班工作坊 (主題:禁煙/禁藥) 08:30-10:00" },
+                { grade: "中四", date: "30/10(五)", name: "升中四日營 上午(禮堂) 下午(禮堂)" },
+                { grade: "中五", date: "30/10(五)", name: "戶外學習日 (學生會協助地點投票)" }
+            ],
+            "輔導組": [
+                { grade: "中二", date: "30/10(五)", name: "黑暗中對話(共融) [待定]" },
+                { grade: "中三", date: "30/10(五)", name: "模擬人生 10:15-12:45" },
+                { grade: "中五", date: "19/3(五)", name: "精神健康急救課程 8:45-10:15 [待定]" },
+                { grade: "中六", date: "30/10(五)", name: "戶外學習日 (學生會協助地點投票)" }
+            ],
+            "體育科": [
+                { grade: "中二", date: "22/1(五)", name: "營動新世代 (班級經營活動) 09:30-12:15" },
+                { grade: "中四", date: "22/1(五)", name: "班際競技日 (營地) (班級經營活動)" }
+            ],
+            "視藝科": [
+                { grade: "中三", date: "22/1(五)", name: "風箏日 08:30-15:30 (09:00出發)" }
+            ]
+        };
+
+        const groupSelect = document.getElementById('groupSelect');
+        const activityForm = document.getElementById('activityForm');
+        const activitiesContainer = document.getElementById('activitiesContainer');
+        const successMessage = document.getElementById('successMessage');
+
+        // 當選擇組別時，動態顯示該組別的活動
+        groupSelect.addEventListener('change', function() {
+            const selectedGroup = this.value;
+            activitiesContainer.innerHTML = '';
+            successMessage.classList.add('hidden');
+
+            if (selectedGroup && activitiesData[selectedGroup]) {
+                activitiesData[selectedGroup].forEach((activity, index) => {
+                    const activityDiv = document.createElement('div');
+                    activityDiv.className = 'p-4 border rounded-md bg-gray-50';
+                    activityDiv.innerHTML = `
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div class="flex-1">
+                                <span class="inline-block px-2 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded mb-1">${activity.grade}</span>
+                                <span class="inline-block px-2 py-1 text-xs font-semibold bg-green-100 text-green-800 rounded mb-1">${activity.date}</span>
+                                <p class="font-medium text-gray-800 mt-1">${activity.name}</p>
+                            </div>
+                            <div class="w-full md:w-1/3">
+                                <input type="text" required placeholder="請輸入負責人姓名" 
+                                    class="w-full border border-gray-300 rounded p-2 focus:ring-blue-500 focus:border-blue-500"
+                                    data-grade="${activity.grade}" data-date="${activity.date}" data-activity="${activity.name}">
+                            </div>
+                        </div>
+                    `;
+                    activitiesContainer.appendChild(activityDiv);
+                });
+                activityForm.classList.remove('hidden');
+            } else {
+                activityForm.classList.add('hidden');
+            }
+        });
+
+        // 處理表單提交
+        activityForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // 請將下方的 URL 替換為你的 Google Apps Script Web App URL
+            const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCBGdd4oQl_wMV8dXKedxaPYwCI1z7R-7Ol3T3InpsjTAxz6v5BGJkmjKpNysn_n9ePA/exec';
+            
+            const selectedGroup = groupSelect.value;
+            const inputs = activitiesContainer.querySelectorAll('input[type="text"]');
+            const submitData = [];
+
+            inputs.forEach(input => {
+                submitData.push({
+                    group: selectedGroup,
+                    grade: input.getAttribute('data-grade'),
+                    date: input.getAttribute('data-date'),
+                    activity: input.getAttribute('data-activity'),
+                    personInCharge: input.value
+                });
+            });
+
+            // 提交按鈕顯示載入中
+            const submitBtn = activityForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = '提交中...';
+            submitBtn.disabled = true;
+
+            // 傳送資料到 Google Sheets
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // 避免 CORS 問題
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(submitData)
+            }).then(() => {
+                activityForm.reset();
+                activityForm.classList.add('hidden');
+                groupSelect.value = '';
+                successMessage.classList.remove('hidden');
+            }).catch(error => {
+                alert('提交失敗，請稍後再試。');
+                console.error('Error!', error.message);
+            }).finally(() => {
+                submitBtn.innerText = originalBtnText;
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
+
+
+</body></html>
